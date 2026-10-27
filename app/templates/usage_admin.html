@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Token 消耗 · 管理员{% endblock %}
+{% block lead %}按用户查看全站 Token；点开可展开月份与活动明细，再点收起。{% endblock %}
+{% block content %}
+<section class="panel full">
+  <h2>全站 Token 消耗</h2>
+  <p class="hint">每个用户一条；展开后按月 → 活动 → 明细查看。</p>
+
+  <div class="stats-row" style="margin-bottom:16px">
+    <div class="stat">
+      <div class="stat-n">{{ usage_users|length }}</div>
+      <div class="stat-l">有消耗的用户</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">{{ usage_total_own }}</div>
+      <div class="stat-l">全站合计 Token</div>
+    </div>
+  </div>
+
+  <div class="q-accordion-list">
+    {% for u in usage_users %}
+    <details class="q-item">
+      <summary class="q-summary">
+        <span class="q-summary-main">
+          <span class="q-chevron" aria-hidden="true"></span>
+          <strong class="q-title">账号 {{ u.username }}</strong>
+        </span>
+        <span class="q-summary-meta">
+          <span class="meta">{{ u.op_count }} 次操作</span>
+          <strong>{{ u.own_tokens }} Token</strong>
+          <span class="q-toggle-hint meta">展开</span>
+        </span>
+      </summary>
+      <div class="q-body">
+        {% set months = usage_user_months.get(u.username) or [] %}
+        {% if months %}
+        {% for m in months %}
+        <details class="q-item" style="margin-bottom:10px">
+          <summary class="q-summary">
+            <span class="q-summary-main">
+              <span class="q-chevron" aria-hidden="true"></span>
+              <strong class="q-title">{{ m.month_id }}</strong>
+            </span>
+            <span class="q-summary-meta">
+              <span class="meta">{{ m.op_count }} 次</span>
+              <strong>{{ m.own_tokens }} Token</strong>
+              <span class="q-toggle-hint meta">展开</span>
+            </span>
+          </summary>
+          <div class="q-body">
+            {% set acts = usage_by_month.get(u.username ~ ':' ~ m.month_id) or [] %}
+            {% if acts %}
+            {% for a in acts %}
+            <details class="q-item" style="margin-bottom:8px">
+              <summary class="q-summary">
+                <span class="q-summary-main">
+                  <span class="q-chevron" aria-hidden="true"></span>
+                  <strong class="q-title">{{ a.activity_label or a.activity }}</strong>
+                </span>
+                <span class="q-summary-meta">
+                  <span class="meta">{{ a.op_count }} 次</span>
+                  <strong>{{ a.own_tokens }} Token</strong>
+                  <span class="q-toggle-hint meta">展开</span>
+                </span>
+              </summary>
+              <div class="q-body">
+                {% set entries = usage_entries.get(u.username ~ ':' ~ m.month_id ~ ':' ~ a.activity) or [] %}
+                {% if entries %}
+                <div style="overflow:auto">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>时间</th>
+                        <th>模型</th>
+                        <th>Token</th>
+                        <th>说明</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for e in entries %}
+                      <tr>
+                        <td>{{ e.created_at }}</td>
+                        <td class="seg">{{ e.model or '—' }}</td>
+                        <td><strong>{{ e.own_tokens }}</strong></td>
+                        <td class="seg">{{ e.detail or '—' }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+                {% else %}
+                <p class="meta">暂无明细。</p>
+                {% endif %}
+              </div>
+            </details>
+            {% endfor %}
+            {% else %}
+            <p class="meta">该月暂无按活动汇总。</p>
+            {% endif %}
+          </div>
+        </details>
+        {% endfor %}
+        {% else %}
+        <p class="meta">该用户暂无按月记录。</p>
+        {% endif %}
+      </div>
+    </details>
+    {% else %}
+    <p class="meta">尚无 Token 消耗记录。</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll('details.q-item').forEach((el) => {
+    const hint = el.querySelector(':scope > .q-summary .q-toggle-hint');
+    const sync = () => { if (hint) hint.textContent = el.open ? '收起' : '展开'; };
+    el.addEventListener('toggle', sync);
+    sync();
+  });
+</script>
+{% endblock %}

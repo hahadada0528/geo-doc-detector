@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}投放分析 · GEO{% endblock %}
+{% block lead %}分析投放站写法规律，生成资料型文章并导出 Word / PDF。{% endblock %}
+{% block content %}
+<div class="grid">
+  {% include "partials/analyze.html" %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  (function () {
+    const result = document.getElementById('analyze-result');
+    if (result && (location.hash === '#analyze-result' || location.search.includes('site='))) {
+      // only auto-scroll when coming from generate or explicit hash
+    }
+    if (location.hash === '#analyze-result' || location.hash === '#generate-article') {
+      const el = document.getElementById(location.hash.slice(1)) || result;
+      el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    const siteSelect = document.getElementById('siteSelect');
+    const siteInput = document.getElementById('site');
+    if (siteSelect && siteInput) {
+      siteSelect.addEventListener('change', function () {
+        if (!this.value) return;
+        siteInput.value = this.value;
+        location.href = '/analyze?site=' + encodeURIComponent(this.value) + '#analyze-result';
+      });
+    }
+  })();
+</script>
+{% endblock %}

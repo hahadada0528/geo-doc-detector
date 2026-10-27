@@ -1,0 +1,28 @@
+      <section class="panel">
+        <h2>品牌</h2>
+        <p class="hint">用于官网自我判定。点「添加品牌」进入独立页面填写。</p>
+        <p style="margin:0 0 14px">
+          <a class="btn" href="/brands/new" style="text-decoration:none">添加品牌</a>
+        </p>
+        <div class="list">
+          {% for b in brands %}
+          <div class="item">
+            <div>
+              <strong>{{ b.name }}</strong>
+              <div class="meta">
+                别名：{{ b.aliases|join('、') or '—' }}
+                <br />域名：{{ b.official_domains|join('、') or '—' }}
+              </div>
+            </div>
+            <div class="row" style="gap:8px;flex-wrap:wrap">
+              <a class="btn secondary" href="/brands/{{ b.id }}/edit" style="text-decoration:none;padding:6px 12px;font-size:0.85rem">编辑</a>
+              <form method="post" action="/brands/{{ b.id }}/delete" onsubmit="return confirm('删除品牌会清空该品牌的问题队列；已采集的引用会保留。确定？');">
+                <button class="btn danger" type="submit">删除</button>
+              </form>
+            </div>
+          </div>
+          {% else %}
+          <div class="meta">还没有品牌，先添加一个。</div>
+          {% endfor %}
+        </div>
+      </section>

@@ -1,0 +1,19 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+data/*.db
+data/agent_packs/
+data/exports/
+data/app_settings.json
+.pytest_cache/
+.idea/
+.vscode/
+
+# local runtime logs
+data/*.log
+data/start_error.log
+data/hermes_proxy.log
+*.log
+.DS_Store

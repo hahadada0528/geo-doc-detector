@@ -1,0 +1,268 @@
+      <section class="panel full" id="analyze">
+        <h2>投放网站分析</h2>
+        <p class="hint">输入或点选下方站点，点「检索并分析」。官网类引用已合并为「官网」。分析后会给出可直接写稿的「成稿规格书」。</p>
+        <form method="post" action="/analyze" id="analyzeForm">
+          <div class="field">
+            <label for="siteSelect">投放网站（完整列表）</label>
+            <select id="siteSelect">
+              <option value="">从完整列表选择…</option>
+              {% for s in sites or [] %}
+              <option value="{{ s.site_name }}" {% if analyze_site == s.site_name %}selected{% endif %}>{{ s.site_name }}（{{ s.cnt }} 条）</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="site">或手动输入 / 改写站点名</label>
+            <input id="site" name="site" required value="{{ analyze_site or '' }}" placeholder="例如：知乎 / zhihu.com / 官网" />
+          </div>
+          {% if sites %}
+          <div class="site-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px">
+            {% for s in sites[:24] %}
+            <a class="btn secondary" href="/analyze?site={{ s.site_name|urlencode }}#analyze-result" style="padding:6px 12px;font-size:0.85rem;text-decoration:none">
+              {{ s.site_name }} · {{ s.cnt }}
+            </a>
+            {% endfor %}
+          </div>
+          {% endif %}
+          <button class="btn" type="submit">检索并分析</button>
+        </form>
+
+        {% if analysis %}
+        <div class="analysis" id="analyze-result">
+          {% if analysis.matched == 0 %}
+          <p class="meta" style="color:var(--err);margin:12px 0">
+            未找到「{{ analyze_site }}」的引用数据。请换库里已有的站点名（可点上方按钮），或先跑检测采集。
+          </p>
+          {% else %}
+          <p class="meta" style="margin:12px 0 0">
+            当前分析站点：<strong>{{ analyze_site }}</strong>
+            · 匹配 {{ analysis.matched }} 条
+            · 一年内有效 {{ analysis.used }}
+            · 总权重 {{ analysis.total_weight }}
+          </p>
+
+          {% if analysis.writing_spec %}
+          <div class="gen-box" style="margin-top:16px">
+            <h3>成稿规格书</h3>
+            <p class="hint">按此规格写稿即可；生成文章时只会把这份规格发给写稿服务。</p>
+            <div class="stats-row" style="margin-bottom:12px">
+              <div class="stat">
+                <span class="stat-n">{{ analysis.writing_spec.get('一文一型') or '—' }}</span>
+                <span class="stat-l">一文一型</span>
+              </div>
+              <div class="stat">
+                <span class="stat-n">{{ analysis.writing_spec.get('主资料分级') or analysis.primary_level or '—' }}</span>
+                <span class="stat-l">主资料分级</span>
+              </div>
+              <div class="stat">
+                <span class="stat-n">{{ analysis.writing_spec.get('目标字数') or 1200 }}</span>
+                <span class="stat-l">参考字数</span>
+              </div>
+            </div>
+            {% if analysis.writing_spec.get('结构大纲') %}
+            <h4 style="margin:12px 0 6px;font-size:0.95rem">结构大纲</h4>
+            <ol class="advice" style="padding-left:1.2rem">
+              {% for step in analysis.writing_spec.get('结构大纲') %}
+              <li>{{ step }}</li>
+              {% endfor %}
+            </ol>
+            {% endif %}
+            {% if analysis.writing_spec.get('段首必须对齐词') %}
+            <h4 style="margin:12px 0 6px;font-size:0.95rem">段首必须对齐词</h4>
+            <p>{{ analysis.writing_spec.get('段首必须对齐词')|join('、') }}</p>
+            {% endif %}
+            {% if analysis.writing_spec.get('范例句式') %}
+            <h4 style="margin:12px 0 6px;font-size:0.95rem">范例句式</h4>
+            <ul class="advice">
+              {% for ex in analysis.writing_spec.get('范例句式') %}
+              <li>{{ ex }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+            {% if analysis.writing_spec.get('写法要点') %}
+            <h4 style="margin:12px 0 6px;font-size:0.95rem">写法要点</h4>
+            <ul class="advice">
+              {% for tip in analysis.writing_spec.get('写法要点')[:6] %}
+              <li>{{ tip }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+            {% if analysis.writing_spec.get('明确不要') %}
+            <h4 style="margin:12px 0 6px;font-size:0.95rem">明确不要</h4>
+            <ul class="advice">
+              {% for x in analysis.writing_spec.get('明确不要') %}
+              <li>{{ x }}</li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+            <details style="margin-top:12px">
+              <summary>查看完整规格书（Markdown）</summary>
+              <pre class="brief-out">{{ analysis.writing_spec_md }}</pre>
+            </details>
+          </div>
+          {% endif %}
+
+          <details style="margin:16px 0">
+            <summary>展开原始统计明细（可选查阅）</summary>
+            <div style="margin-top:12px">
+              <ul class="advice">
+                {% for tip in analysis.advice[:8] %}
+                <li>{{ tip }}</li>
+                {% endfor %}
+              </ul>
+              <div class="two-col">
+                <div>
+                  <h3>文章类型</h3>
+                  <p class="meta">推荐：{{ analysis.recommended_article_type or '—' }}</p>
+                  {% if analysis.article_type_rank %}
+                  <table>
+                    <thead><tr><th>类型</th><th>占比</th></tr></thead>
+                    <tbody>
+                      {% for t in analysis.article_type_rank[:6] %}
+                      <tr><td>{{ t.name }}</td><td>{{ (t.share * 100)|int }}%</td></tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                  {% endif %}
+                </div>
+                <div>
+                  <h3>资料分级</h3>
+                  <p class="meta">主分级：{{ analysis.primary_level or '—' }}</p>
+                  {% if analysis.level_rank %}
+                  <table>
+                    <thead><tr><th>分级</th><th>占比</th></tr></thead>
+                    <tbody>
+                      {% for lv in analysis.level_rank[:6] %}
+                      <tr><td>{{ lv.level_name }}</td><td>{{ (lv.share * 100)|int }}%</td></tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                  {% endif %}
+                </div>
+              </div>
+              <h3>高权重样本</h3>
+              <div style="overflow:auto">
+                <table>
+                  <thead><tr><th>权重</th><th>分级</th><th>问题</th><th>段落</th></tr></thead>
+                  <tbody>
+                    {% for s in analysis.samples[:10] %}
+                    <tr>
+                      <td>{{ s.weight }}</td>
+                      <td>{{ s.level_name or '—' }}</td>
+                      <td>{{ s.question_text }}</td>
+                      <td class="seg">{{ s.segment or s.title or '—' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" class="meta">暂无样本。</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </details>
+
+          <div class="gen-box" id="generate-article">
+            <h3>生成文章并导出</h3>
+            <p class="hint">
+              将上方<strong>成稿规格书</strong>发给本机写稿服务，生成资料型（非广告）文章并导出 Word / PDF。
+              {% if hermes_ready %}
+              <span class="badge official">已对接 {{ hermes_model or 'wiki-assistant' }}</span>
+              {% else %}
+              <span class="badge">请配置 HERMES_BASE_URL</span>
+              {% endif %}
+            </p>
+            <form method="post" action="/generate/article">
+              <input type="hidden" name="site" value="{{ analyze_site }}" />
+              <div class="field">
+                <label for="gen_topic">文章主题 / 关键词</label>
+                <input id="gen_topic" name="topic" required value="{{ gen_topic or '' }}" placeholder="例如：通勤跑鞋怎么选" />
+              </div>
+              <div class="two-col">
+                <div class="field">
+                  <label for="gen_brand">品牌（可选）</label>
+                  <input id="gen_brand" name="brand" value="{{ gen_brand or '' }}" placeholder="例如：hahadada" />
+                </div>
+                <div class="field">
+                  <label for="gen_word_count">目标字数</label>
+                  <input id="gen_word_count" name="word_count" type="number" min="400" max="4000" step="100" value="{{ gen_word_count or 1200 }}" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="gen_notes">补充要求（可选）</label>
+                <textarea id="gen_notes" name="notes" placeholder="必写对比点、适用场景、禁止出现的促销话术…">{{ gen_notes or '' }}</textarea>
+              </div>
+              <div class="field export-opts">
+                <label>导出格式（生成后可下载）</label>
+                <div class="export-checks">
+                  <label class="export-check"><input type="checkbox" name="export_docx" value="1" checked /> Word (.docx)</label>
+                  <label class="export-check"><input type="checkbox" name="export_pdf" value="1" checked /> PDF</label>
+                </div>
+              </div>
+              <button class="btn" type="submit">生成并导出</button>
+            </form>
+
+            {% if recent_exports %}
+            <div class="download-bar recent-exports">
+              <strong>最近导出文件</strong>
+              <div class="download-links">
+                {% for f in recent_exports %}
+                <a class="btn secondary dl-btn" href="{{ f.href }}">{{ f.kind }} · {{ f.name }}</a>
+                {% endfor %}
+              </div>
+              <p class="meta" style="margin-top:8px">若要入库，请到「知识库」页上传。</p>
+            </div>
+            {% endif %}
+
+            {% if generated %}
+            <div class="gen-result">
+              {% if generated.ok %}
+              <p class="meta">{{ generated.message }}{% if generated.model %} · 模型 {{ generated.model }}{% endif %}</p>
+              {% if generated.downloads %}
+              <div class="download-bar">
+                <strong>下载本次成稿</strong>
+                <div class="download-links">
+                  {% for d in generated.downloads %}
+                  <a class="btn dl-btn" href="{{ d.href }}" download>{{ d.kind }} 下载</a>
+                  {% endfor %}
+                </div>
+              </div>
+              {% elif generated.files %}
+              <div class="download-bar">
+                <strong>下载本次成稿</strong>
+                <div class="download-links">
+                  {% if generated.files.docx %}
+                  <a class="btn dl-btn" href="/exports/{{ generated.files.docx.replace('\\','/').split('/')[-1] }}" download>Word 下载</a>
+                  {% endif %}
+                  {% if generated.files.pdf %}
+                  <a class="btn dl-btn" href="/exports/{{ generated.files.pdf.replace('\\','/').split('/')[-1] }}" download>PDF 下载</a>
+                  {% endif %}
+                </div>
+              </div>
+              {% else %}
+              <p class="meta" style="color:var(--err)">未生成下载文件。请确认已安装 python-docx / reportlab，并重启启动器后再试。</p>
+              {% endif %}
+              {% if kb_message %}
+              <p class="meta" style="color:{% if kb_result and kb_result.ok %}var(--ok){% else %}var(--err){% endif %}">{{ kb_message }}</p>
+              {% endif %}
+              <pre class="article-out">{{ generated.article }}</pre>
+              <details>
+                <summary>查看发给写稿服务的成稿规格书</summary>
+                <pre class="brief-out">{{ generated.brief }}</pre>
+              </details>
+              {% else %}
+              <p class="meta" style="color:var(--err)">{{ generated.message }}</p>
+              {% if generated.brief %}
+              <details>
+                <summary>已生成的成稿规格书（调用失败时仍可复制）</summary>
+                <pre class="brief-out">{{ generated.brief }}</pre>
+              </details>
+              {% endif %}
+              {% endif %}
+            </div>
+            <script>document.getElementById('generate-article')?.scrollIntoView({behavior:'smooth',block:'start'});</script>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </section>

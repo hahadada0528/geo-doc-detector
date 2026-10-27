@@ -1,0 +1,38 @@
+      <section class="panel full" id="agent">
+        <h2>本地 Agent（全量重训）</h2>
+        <p class="hint">
+          每次点击都会<strong>全量重新训练</strong>：按当前时刻重算时间权重并覆盖本月训练包。
+          训练包以各站「成稿规格书」为主（大纲/对齐词/范例句），官网引用合并为「官网」。
+          回溯天数可在「设置」调整（当前近 {{ train_settings.train_lookback_days }} 天）。
+        </p>
+        <div class="stats-row" style="margin-bottom:14px">
+          <div class="stat">
+            <span class="stat-n">{{ pack_manifest.month_id if pack_manifest else '—' }}</span>
+            <span class="stat-l">当前训练月</span>
+          </div>
+          <div class="stat">
+            <span class="stat-n">{{ pack_manifest.example_count if pack_manifest else 0 }}</span>
+            <span class="stat-l">加权样本</span>
+          </div>
+          <div class="stat">
+            <span class="stat-n">{{ pack_manifest.site_count if pack_manifest else 0 }}</span>
+            <span class="stat-l">覆盖站点</span>
+          </div>
+          <div class="stat">
+            <span class="stat-n">{{ pack_manifest.total_weight if pack_manifest else 0 }}</span>
+            <span class="stat-l">总权重</span>
+          </div>
+        </div>
+        {% if train_message %}
+        <p class="meta" style="margin-bottom:12px">{{ train_message }}</p>
+        {% elif training %}
+        <p class="meta" style="margin-bottom:12px">最近训练：{{ training.status }} · {{ training.created_at }} · {{ training.message or '' }}</p>
+        {% endif %}
+        <form method="post" action="/agent/train">
+          <div class="field">
+            <label for="train_note">训练备注（可选）</label>
+            <input id="train_note" name="note" value="{{ train_settings.train_note_default or '' }}" placeholder="例如：2026-07 月度复训" />
+          </div>
+          <button class="btn" type="submit">全量重新训练</button>
+        </form>
+      </section>

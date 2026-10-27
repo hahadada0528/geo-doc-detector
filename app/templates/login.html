@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>登录 · 睿览 GEO 文档检测</title>
+  <link rel="icon" type="image/png" href="/static/rolen-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body class="login-page">
+  <div class="brand-watermark brand-watermark-login" aria-hidden="true">
+    <img src="/static/rolen-logo.png" alt="" />
+  </div>
+  <div class="login-stage">
+    <div class="login-glow" aria-hidden="true"></div>
+    <section class="login-card reveal">
+      <p class="login-eyebrow">睿览 rolen</p>
+      <h1 class="login-title">GEO 文档检测</h1>
+      <p class="login-sub">登录后开始采集、分析与写稿。</p>
+      {% if login_error %}
+      <div class="probe-box err">
+        <strong>登录失败</strong>
+        <p>{{ login_error }}</p>
+      </div>
+      {% endif %}
+      <form class="login-form" method="post" action="/login">
+        <input type="hidden" name="next" value="{{ next_url or '/' }}" />
+        <div class="field">
+          <label for="username">账号</label>
+          <input id="username" name="username" required autocomplete="username" value="{{ username or '' }}" placeholder="输入账号" />
+        </div>
+        <div class="field">
+          <label for="password">密码</label>
+          <input id="password" name="password" type="password" required autocomplete="current-password" placeholder="输入密码" />
+        </div>
+        <button class="btn btn-block" type="submit">进入工作台</button>
+      </form>
+    </section>
+  </div>
+</body>
+</html>

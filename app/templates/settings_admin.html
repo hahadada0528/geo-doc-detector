@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}设置 · 月度训练 Agent{% endblock %}
+{% block lead %}配置本地月度训练 Agent 的回溯范围与默认备注。{% endblock %}
+{% block content %}
+<section class="panel full">
+  <h2>月度训练 Agent</h2>
+  <p class="hint">
+    保存到运行时配置文件。训练时只会使用回溯天数内的引用数据；默认备注会预填到「本地 Agent」训练表单。
+  </p>
+  {% if settings_message %}
+  <p class="meta" style="margin-bottom:12px;color:{% if settings_ok %}var(--ok){% else %}var(--err){% endif %}">
+    {{ settings_message }}
+  </p>
+  {% endif %}
+  <form method="post" action="/settings">
+    <div class="field">
+      <label for="train_lookback_days">引用回溯天数</label>
+      <input id="train_lookback_days" name="train_lookback_days" type="number" min="30" max="3650" step="1"
+             value="{{ train_settings.train_lookback_days }}" required />
+      <p class="meta" style="margin-top:6px">建议 365（一年内）。范围 30～3650。</p>
+    </div>
+    <div class="field">
+      <label for="train_note_default">默认训练备注</label>
+      <input id="train_note_default" name="train_note_default"
+             value="{{ train_settings.train_note_default }}"
+             placeholder="例如：月度复训" />
+    </div>
+    <div class="row">
+      <button class="btn" type="submit">保存设置</button>
+      <a class="btn secondary" href="/agent">前往本地 Agent</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

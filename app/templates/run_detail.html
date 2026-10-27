@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}{{ run.title or ('检测批次 #' ~ run.id) }} · GEO{% endblock %}
+{% block lead %}本轮引用结果、AI 回复与 GEO 汇总分析。{% endblock %}
+{% block content %}
+<p class="meta" style="margin-bottom:12px"><a href="/collect">← 返回采集检测</a></p>
+
+<section class="panel full">
+  <h2>{{ run.title or (run.started_at ~ ' ' ~ (run.brand_name or '')) }}</h2>
+  <p class="hint">
+    状态 <span class="badge {{ run.status }}">{{ run.status }}</span>
+    · 进度 {{ run.done }}/{{ run.total }}
+    {% if run.started_at %} · 开始 {{ run.started_at }}{% endif %}
+    {% if run.finished_at %} · 结束 {{ run.finished_at }}{% endif %}
+  </p>
+
+  {% if analysis %}
+  <div class="stats-row" style="margin-top:16px">
+    <div class="stat">
+      <div class="stat-n">{{ '%.1f'|format(analysis.keyword_coverage) }}</div>
+      <div class="stat-l">GEO 关键词覆盖广度</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">{{ '%.1f'|format(analysis.answer_priority) }}</div>
+      <div class="stat-l">答案展示优先级</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">{{ '%.1f'|format(analysis.sentiment_score) }}</div>
+      <div class="stat-l">正负面分析{% if analysis.sentiment_label %} · {{ analysis.sentiment_label }}{% endif %}</div>
+    </div>
+  </div>
+  <div class="advice-box" style="margin-top:16px">
+    <h3 style="margin:0 0 8px;font-size:1rem">投放建议</h3>
+    <pre class="advice-text">{{ analysis.advice }}</pre>
+  </div>
+  {% elif run.status == 'done' %}
+  <p class="meta">分析尚未生成。
+    <form method="post" action="/runs/{{ run.id }}/analyze" style="display:inline">
+      <button class="btn secondary" type="submit">生成分析</button>
+    </form>
+  </p>
+  {% else %}
+  <p class="meta">检测结束后将自动汇总分析并写入数据库。</p>
+  {% endif %}
+</section>
+
+<section class="panel full">
+  <h2>问题明细</h2>
+  <p class="hint">默认收起；点击问题标题展开查看 AI 回复与引用，再点一次可收起。</p>
+
+  <div class="q-accordion-list">
+    {% for block in question_blocks %}
+    {% set a = block.ask %}
+    {% set cites = block.citations %}
+    <details class="q-item">
+      <summary class="q-summary">
+        <span class="q-summary-main">
+          <span class="q-chevron" aria-hidden="true"></span>
+          <span class="badge {{ a.status }}">{{ a.status }}</span>
+          <strong class="q-title">{{ a.question_text or ('问题 #' ~ a.question_id) }}</strong>
+        </span>
+        <span class="q-summary-meta">
+          <span class="meta">{{ cites|length }} 条引用</span>
+          {% if a.created_at %}<span class="meta">{{ a.created_at }}</span>{% endif %}
+          <span class="q-toggle-hint meta">展开</span>
+        </span>
+      </summary>
+      <div class="q-body">
+        <h3 class="q-section-title">AI 回复</h3>
+        {% if a.status == 'ok' %}
+        <div class="answer-body">{{ a.answer_text or '（无正文）' }}</div>
+        {% if not a.answer_text %}
+        <p class="meta" style="color:var(--err)">本次入库时模型正文为空。请勾选「强制重跑」再检测。</p>
+        {% endif %}
+        {% if a.search_queries %}
+        <p class="meta" style="margin-top:8px">检索词：{{ a.search_queries | join(' · ') }}</p>
+        {% endif %}
+        {% else %}
+        <p class="meta" style="color:var(--err)">{{ a.error_message or '提问失败' }}</p>
+        {% endif %}
+
+        <h3 class="q-section-title">引用资料</h3>
+        {% if cites %}
+        <div class="cite-list">
+          {% for c in cites %}
+          <div class="cite-row">
+            <div class="cite-row-top">
+              {% if c.is_official %}
+              <span class="badge official">官网</span>
+              {% else %}
+              <span class="badge">{{ c.site_name or '站点' }}</span>
+              {% endif %}
+              {% if c.content_level %}<span class="badge">{{ c.content_level }}</span>{% endif %}
+              {% if c.url %}<a href="{{ c.url }}" target="_blank" rel="noopener">打开链接</a>{% endif %}
+            </div>
+            {% if c.title %}<div class="cite-title">{{ c.title }}</div>{% endif %}
+            <div class="seg">{{ c.segment or '—' }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="meta">本题暂无引用资料。</p>
+        {% endif %}
+      </div>
+    </details>
+    {% else %}
+    <p class="meta">本轮暂无提问记录。</p>
+    {% endfor %}
+  </div>
+
+  {% if run_orphan_citations %}
+  <details class="q-item" style="margin-top:14px">
+    <summary class="q-summary">
+      <span class="q-summary-main">
+        <span class="q-chevron" aria-hidden="true"></span>
+        <strong class="q-title">未归入某题的引用（{{ run_orphan_citations|length }}）</strong>
+      </span>
+      <span class="q-toggle-hint meta">展开</span>
+    </summary>
+    <div class="q-body">
+      <div class="cite-list">
+        {% for c in run_orphan_citations %}
+        <div class="cite-row">
+          <div class="cite-row-top">
+            <span class="badge">{{ c.site_name or '站点' }}</span>
+            {% if c.url %}<a href="{{ c.url }}" target="_blank" rel="noopener">打开链接</a>{% endif %}
+          </div>
+          <div class="meta">{{ c.question_text }}</div>
+          <div class="seg">{{ c.segment or c.title or '—' }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </details>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll('details.q-item').forEach((el) => {
+    const hint = el.querySelector('.q-toggle-hint');
+    const sync = () => { if (hint) hint.textContent = el.open ? '收起' : '展开'; };
+    el.addEventListener('toggle', sync);
+    sync();
+  });
+</script>
+{% endblock %}

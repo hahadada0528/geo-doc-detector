@@ -1,0 +1,35 @@
+      <section class="panel full" id="knowledge">
+        <h2>上传到知识库</h2>
+        <p class="hint">
+          调用 <code>{{ kb_base_url or 'http://127.0.0.1:8686' }}/v1/files</code>，
+          purpose 默认 <code>{{ kb_purpose or 'brand-extras' }}</code>。
+          {% if kb_ready %}
+          <span class="badge official">已配置</span>
+          {% else %}
+          <span class="badge">请配置 KB_BASE_URL</span>
+          {% endif %}
+        </p>
+        <form method="post" action="/knowledge/upload" enctype="multipart/form-data">
+          <div class="field">
+            <label for="kb_file">选择文件（xlsx / docx / pdf 等）</label>
+            <input id="kb_file" name="file" type="file" required />
+          </div>
+          <div class="field">
+            <label for="kb_purpose">purpose</label>
+            <input id="kb_purpose" name="purpose" value="{{ kb_purpose or 'brand-extras' }}" placeholder="brand-extras" />
+          </div>
+          <button class="btn" type="submit">上传到知识库</button>
+        </form>
+        {% if kb_message %}
+        <p class="meta" style="margin-top:12px;color:{% if kb_result and kb_result.ok %}var(--ok){% else %}var(--err){% endif %}">
+          {{ kb_message }}
+        </p>
+        <script>document.getElementById('knowledge')?.scrollIntoView({behavior:'smooth',block:'start'});</script>
+        {% endif %}
+        {% if kb_result and kb_result.response_text %}
+        <details open>
+          <summary>知识库返回</summary>
+          <pre class="brief-out">{{ kb_result.response_text }}</pre>
+        </details>
+        {% endif %}
+      </section>

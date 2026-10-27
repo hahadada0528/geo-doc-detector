@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}采集检测 · GEO{% endblock %}
+{% block lead %}录入品牌与问题，连接豆包依次提问并入库引用。{% endblock %}
+{% block content %}
+<div class="grid">
+  {% include "partials/brands.html" %}
+  {% include "partials/questions_detect.html" %}
+  {% include "partials/run_groups.html" %}
+</div>
+{% endblock %}

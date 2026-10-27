@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}GEO 文档检测 · 睿览 rolen{% endblock %}</title>
+  <link rel="icon" type="image/png" href="/static/rolen-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="brand-watermark" aria-hidden="true">
+    <img src="/static/rolen-logo.png" alt="" />
+  </div>
+  <div class="wrap reveal">
+    <header class="hero">
+      <div class="hero-top">
+        <a class="brand" href="/" aria-label="睿览 rolen · GEO 文档检测">
+          <span class="brand-product">GEO 文档检测</span>
+          <span class="brand-by">睿览 rolen</span>
+        </a>
+        {% if current_user %}
+        <div class="hero-auth">
+          <span class="user-chip">{{ current_user }}</span>
+          <form method="post" action="/logout">
+            <button class="btn secondary logout-btn" type="submit">登出</button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+      <p class="lead">{% block lead %}{% if current_role == 'admin' %}管理员：Token 统计、本地 Agent 训练与训练设置。{% else %}录入品牌与问题、采集引用、分析投放站、生成资料型文章并上传知识库。{% endif %}{% endblock %}</p>
+      {% if current_role != 'admin' %}
+      {% if running %}
+      <div class="status running" id="runStatus">
+        <span class="dot"></span>
+        检测进行中
+        {% if run %} · {{ run.done }}/{{ run.total }}{% endif %}
+      </div>
+      {% elif run %}
+      <div class="status" id="runStatus">
+        <span class="dot"></span>
+        最近任务：{{ run.status }} · {{ run.done }}/{{ run.total }}
+        {% if run.finished_at %} · {{ run.finished_at }}{% endif %}
+      </div>
+      {% else %}
+      <div class="status" id="runStatus"><span class="dot"></span>尚未开始检测</div>
+      {% endif %}
+      {% endif %}
+    </header>
+
+    <nav class="top-nav" aria-label="功能索引">
+      <a class="nav-item {% if nav == 'home' %}active{% endif %}" href="/">首页</a>
+      {% if current_role == 'admin' %}
+      <a class="nav-item {% if nav == 'agent' %}active{% endif %}" href="/agent">本地 Agent</a>
+      <a class="nav-item {% if nav == 'usage' %}active{% endif %}" href="/usage">Token 消耗</a>
+      <a class="nav-item {% if nav == 'settings' %}active{% endif %}" href="/settings">设置</a>
+      {% else %}
+      <a class="nav-item {% if nav == 'collect' %}active{% endif %}" href="/collect">采集检测</a>
+      <a class="nav-item {% if nav == 'analyze' %}active{% endif %}" href="/analyze">投放分析</a>
+      <a class="nav-item {% if nav == 'knowledge' %}active{% endif %}" href="/knowledge">知识库</a>
+      <a class="nav-item {% if nav == 'usage' %}active{% endif %}" href="/usage">Token 消耗</a>
+      <a class="nav-item {% if nav == 'settings' %}active{% endif %}" href="/settings">设置</a>
+      {% endif %}
+    </nav>
+
+    <main class="page-main">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+      <span>睿览 rolen · GEO 文档检测</span>
+    </footer>
+  </div>
+
+  <script>
+    async function poll() {
+      try {
+        const res = await fetch('/api/status');
+        if (res.status === 401) {
+          location.href = '/login';
+          return;
+        }
+        const data = await res.json();
+        if (data.running) {
+          const el = document.getElementById('runStatus');
+          if (el) {
+            el.classList.add('running');
+            const r = data.run || {};
+            el.innerHTML = `<span class="dot"></span>检测进行中 · ${r.done || 0}/${r.total || 0}`;
+          }
+        } else if (data.run && data.run.status === 'done') {
+          if (sessionStorage.getItem('wasRunning') === '1') {
+            sessionStorage.removeItem('wasRunning');
+            location.reload();
+          }
+        }
+        sessionStorage.setItem('wasRunning', data.running ? '1' : '0');
+      } catch (e) {}
+    }
+    setInterval(poll, 2500);
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

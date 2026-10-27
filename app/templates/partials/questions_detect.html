@@ -1,0 +1,17 @@
+      <section class="panel">
+        <h2>问题表</h2>
+        <p class="hint">按品牌进入问题管理：查看、添加、编辑、删除，并在该品牌下开始检测。</p>
+        {% if questions_message %}
+        <p class="meta" style="margin-bottom:12px">{{ questions_message }}</p>
+        {% endif %}
+        <div class="brand-tags">
+          {% for b in brands %}
+          <a class="brand-tag" href="/brands/{{ b.id }}/questions">
+            <strong>{{ b.name }}</strong>
+            <span>{{ question_counts.get(b.id, 0) }} 题</span>
+          </a>
+          {% else %}
+          <div class="meta">还没有品牌，请先添加品牌。</div>
+          {% endfor %}
+        </div>
+      </section>

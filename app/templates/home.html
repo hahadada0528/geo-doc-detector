@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}首页 · 睿览 GEO 文档检测{% endblock %}
+{% block lead %}从上方索引进入各功能；每页只做一件事。{% endblock %}
+{% block content %}
+<section class="panel full">
+  <h2>开始使用</h2>
+  {% if current_role == 'admin' %}
+  <p class="hint">管理员：查看全站 Token、运行月度训练 Agent、配置训练参数。</p>
+  <div class="feature-grid">
+    <a class="feature-card" href="/agent">
+      <strong>本地 Agent</strong>
+      <span>月度加权训练包</span>
+    </a>
+    <a class="feature-card" href="/usage">
+      <strong>Token 消耗</strong>
+      <span>按用户查看 Token，可展开/收起明细</span>
+    </a>
+    <a class="feature-card" href="/settings">
+      <strong>设置</strong>
+      <span>配置月度训练 Agent（回溯天数、默认备注）</span>
+    </a>
+  </div>
+  {% else %}
+  <p class="hint">用户：管理名下品牌与检测，使用全站投放分析与知识库。</p>
+  <div class="feature-grid">
+    <a class="feature-card" href="/collect">
+      <strong>采集检测</strong>
+      <span>名下品牌、问题表、依次提问与引用结果</span>
+    </a>
+    <a class="feature-card" href="/analyze">
+      <strong>投放分析</strong>
+      <span>基于全站检测数据的站点分析与成稿</span>
+    </a>
+    <a class="feature-card" href="/knowledge">
+      <strong>知识库</strong>
+      <span>上传 xlsx / docx / pdf 到本机知识库服务</span>
+    </a>
+    <a class="feature-card" href="/usage">
+      <strong>Token 消耗</strong>
+      <span>查看本账号按月 Token 明细</span>
+    </a>
+    <a class="feature-card" href="/settings">
+      <strong>设置</strong>
+      <span>配置采集检测 Agent（API Key、模型、间隔）</span>
+    </a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

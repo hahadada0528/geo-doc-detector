@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}编辑问题 · GEO{% endblock %}
+{% block lead %}修改问题文案。{% endblock %}
+{% block content %}
+<section class="panel full">
+  <h2>编辑问题</h2>
+  {% if question %}
+  <p class="hint">
+    <a href="/brands/{{ question.brand_id }}/questions">← 返回 {{ question.brand_name }} 问题管理</a>
+  </p>
+  {% if questions_message %}
+  <p class="meta" style="margin-bottom:12px;color:var(--ok)">{{ questions_message }}</p>
+  {% endif %}
+  <form method="post" action="/questions/{{ question.id }}/edit">
+    <div class="field">
+      <label for="text">问题内容</label>
+      <textarea id="text" name="text" required style="min-height:120px">{{ question.text }}</textarea>
+    </div>
+    <div class="row">
+      <button class="btn" type="submit">保存修改</button>
+      <a class="btn secondary" href="/brands/{{ question.brand_id }}/questions" style="text-decoration:none">取消</a>
+    </div>
+  </form>
+  {% else %}
+  <p class="meta" style="color:var(--err)">问题不存在。</p>
+  <p class="hint"><a href="/collect">← 返回采集检测</a></p>
+  {% endif %}
+</section>
+{% endblock %}

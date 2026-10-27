@@ -1,0 +1,22 @@
+      <section class="panel full">
+        <h2>问题队列</h2>
+        <p class="hint">状态：pending 待测 · running 提问中 · done 完成 · error 失败（可重跑）</p>
+        <div class="list" style="max-height:280px">
+          {% for q in questions %}
+          <div class="item">
+            <div>
+              <strong>{{ q.text }}</strong>
+              <div class="meta">
+                <span class="badge {{ q.status }}">{{ q.status }}</span>
+                · {{ q.brand_name }} · {{ q.created_at }}
+              </div>
+            </div>
+            <form method="post" action="/questions/{{ q.id }}/delete">
+              <button class="btn danger" type="submit">删除</button>
+            </form>
+          </div>
+          {% else %}
+          <div class="meta">问题表为空。</div>
+          {% endfor %}
+        </div>
+      </section>

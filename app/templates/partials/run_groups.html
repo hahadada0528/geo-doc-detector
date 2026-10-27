@@ -1,0 +1,82 @@
+<section class="panel full">
+  <h2>引用结果（按检测批次）</h2>
+  <p class="hint">每一次从问题库挨个提问为一组；名称 = 首次提问时间 + 品牌。点进去查看引用、AI 回复与 GEO 分析。</p>
+  <div style="overflow:auto">
+    <table>
+      <thead>
+        <tr>
+          <th>批次</th>
+          <th>状态</th>
+          <th>进度</th>
+          <th>关键词覆盖</th>
+          <th>展示优先级</th>
+          <th>正负面</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in detection_runs %}
+        <tr>
+          <td>
+            <a href="/runs/{{ r.id }}"><strong>{{ r.title or (r.started_at ~ ' ' ~ (r.brand_name or '')) }}</strong></a>
+          </td>
+          <td><span class="badge {{ r.status }}">{{ r.status }}</span></td>
+          <td>{{ r.done }}/{{ r.total }}</td>
+          <td>{% if r.keyword_coverage is not none %}{{ '%.1f'|format(r.keyword_coverage) }}{% else %}—{% endif %}</td>
+          <td>{% if r.answer_priority is not none %}{{ '%.1f'|format(r.answer_priority) }}{% else %}—{% endif %}</td>
+          <td>
+            {% if r.sentiment_score is not none %}
+            {{ '%.1f'|format(r.sentiment_score) }}
+            {% if r.sentiment_label %}<span class="meta">（{{ r.sentiment_label }}）</span>{% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td><a class="btn secondary" href="/runs/{{ r.id }}">查看</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="meta">暂无检测批次。完成一轮采集后会出现在这里。</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{% if orphan_citations %}
+<section class="panel full">
+  <h2>未分组历史引用</h2>
+  <p class="hint">早期数据未绑定检测批次，仅作查阅；新检测会按批次归档。</p>
+  <div style="overflow:auto">
+    <table>
+      <thead>
+        <tr>
+          <th>加入日期</th>
+          <th>品牌</th>
+          <th>网站名</th>
+          <th>资料分级</th>
+          <th>问题</th>
+          <th>参考段落</th>
+          <th>链接</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in orphan_citations %}
+        <tr>
+          <td>{{ c.added_at }}</td>
+          <td>{{ c.brand_name }}</td>
+          <td>
+            {% if c.is_official %}
+            <span class="badge official">官网</span>
+            {% else %}
+            {{ c.site_name }}
+            {% endif %}
+          </td>
+          <td><span class="badge">{{ c.content_level or '—' }}</span></td>
+          <td>{{ c.question_text }}</td>
+          <td class="seg">{{ c.segment or c.title or '—' }}</td>
+          <td>{% if c.url %}<a href="{{ c.url }}" target="_blank" rel="noopener">打开</a>{% else %}—{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}

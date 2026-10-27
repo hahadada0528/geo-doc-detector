@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}添加品牌 · GEO{% endblock %}
+{% block lead %}新建品牌名、别名与官网域名。{% endblock %}
+{% block content %}
+<section class="panel full">
+  <h2>添加品牌</h2>
+  <p class="hint"><a href="/collect">← 返回采集检测</a></p>
+  <p class="hint">用于官网自我判定。别名与域名可选，逗号分隔；未填域名时也会按品牌名/别名匹配。</p>
+  {% if brand_message %}
+  <p class="meta" style="margin-bottom:12px;color:var(--err)">{{ brand_message }}</p>
+  {% endif %}
+  <form method="post" action="/brands">
+    <div class="field">
+      <label for="name">品牌名</label>
+      <input id="name" name="name" required placeholder="例如：小米" value="{{ brand_form.name if brand_form else '' }}" />
+    </div>
+    <div class="field">
+      <label for="aliases">别名（可选，逗号分隔）</label>
+      <input id="aliases" name="aliases" placeholder="Xiaomi, MI" value="{{ brand_form.aliases if brand_form else '' }}" />
+    </div>
+    <div class="field">
+      <label for="official_domains">已知官网域名（可选，逗号分隔）</label>
+      <input id="official_domains" name="official_domains" placeholder="mi.com, xiaomi.com" value="{{ brand_form.official_domains if brand_form else '' }}" />
+    </div>
+    <div class="row">
+      <button class="btn" type="submit">保存品牌</button>
+      <a class="btn secondary" href="/collect" style="text-decoration:none">取消</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

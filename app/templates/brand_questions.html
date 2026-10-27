@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}{{ brand.name if brand else '问题' }} · 问题管理{% endblock %}
+{% block lead %}管理该品牌下的全部问题：添加、编辑、删除，并开始检测。{% endblock %}
+{% block content %}
+<section class="panel full">
+  <h2>{% if brand %}{{ brand.name }}{% else %}品牌{% endif %} · 问题管理</h2>
+  <p class="hint"><a href="/collect">← 返回采集检测</a></p>
+  {% if not brand %}
+  <p class="meta" style="color:var(--err)">品牌不存在。</p>
+  {% else %}
+  {% if questions_message %}
+  <p class="meta" style="margin-bottom:12px;color:var(--ok)">{{ questions_message }}</p>
+  {% endif %}
+
+  <form method="post" action="/brands/{{ brand.id }}/questions" style="margin-bottom:18px">
+    <div class="field">
+      <label for="questions">添加问题（每行一条，可粘贴多行）</label>
+      <textarea id="questions" name="questions" required style="min-height:140px" placeholder="每行一条问题…"></textarea>
+    </div>
+    <button class="btn" type="submit">添加问题</button>
+  </form>
+
+  <form method="post" action="/detect" style="margin-bottom:18px">
+    <input type="hidden" name="brand_id" value="{{ brand.id }}" />
+    <label class="meta" style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <input type="checkbox" name="force_all" value="1" />
+      强制重跑已完成的问题（含上次「无正文」）
+    </label>
+    <div class="row">
+      <button class="btn" type="submit" {% if running %}disabled{% endif %}>开始依次提问（仅本品牌）</button>
+      <span class="meta">模型：{{ ark_model }} · 默认重跑 pending/error</span>
+    </div>
+    {% if last_ask_error %}
+    <p class="meta" style="margin-top:10px;color:var(--err);word-break:break-word">最近提问错误：{{ last_ask_error }}</p>
+    {% endif %}
+  </form>
+
+  <h3 style="font-family:var(--font-display);font-size:1.08rem;margin:8px 0 10px">全部问题（{{ brand_questions|length }}）</h3>
+  <p class="hint">状态：pending 待测 · running 提问中 · done 完成 · error 失败</p>
+  <div class="list">
+    {% for q in brand_questions %}
+    <div class="item">
+      <div>
+        <strong>{{ q.text }}</strong>
+        <div class="meta">
+          <span class="badge {{ q.status }}">{{ q.status }}</span>
+          · {{ q.created_at }}
+        </div>
+      </div>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <a class="btn secondary" href="/questions/{{ q.id }}/edit" style="text-decoration:none;padding:6px 12px;font-size:0.85rem">编辑</a>
+        <form method="post" action="/questions/{{ q.id }}/delete">
+          <input type="hidden" name="next" value="/brands/{{ brand.id }}/questions" />
+          <button class="btn danger" type="submit">删除</button>
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <div class="meta">该品牌还没有问题，先在上方添加。</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

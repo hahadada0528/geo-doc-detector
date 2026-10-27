@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}知识库 · GEO{% endblock %}
+{% block lead %}把文件上传到本机知识库（/v1/files）。{% endblock %}
+{% block content %}
+<div class="grid">
+  {% include "partials/knowledge.html" %}
+  {% if recent_exports %}
+  <section class="panel full">
+    <h2>从导出文件上传</h2>
+    <p class="hint">也可在「投放分析」生成结果旁直接点上传。</p>
+    <div class="download-links">
+      {% for f in recent_exports %}
+      <form method="post" action="/knowledge/upload-export" style="display:inline">
+        <input type="hidden" name="filename" value="{{ f.name }}" />
+        <input type="hidden" name="purpose" value="{{ kb_purpose or 'brand-extras' }}" />
+        <button class="btn secondary dl-btn" type="submit">上传 {{ f.kind }} · {{ f.name }}</button>
+      </form>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

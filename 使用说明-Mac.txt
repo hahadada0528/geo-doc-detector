@@ -1,0 +1,36 @@
+GEO 文档检测工具 · Mac 使用说明
+================================
+
+这个压缩包可以在 Mac 上直接用。里面已经带上当前的数据库、设置和 .env 密钥，
+不要把压缩包发给别人。
+
+1. 把 zip 拷到 Mac（隔空投送、U 盘或 OneDrive），双击解压。
+2. 安装 Python 3.11 或以上：https://www.python.org/downloads/macos/
+   安装完成后，打开「终端」输入 python3 --version，应显示 3.11 或更高。
+3. 进入解压后的文件夹，双击 start_geo.command。
+   如果系统提示无法打开：按住 Control 点这个文件，选「打开」，再点「打开」。
+   若仍打不开，在终端执行（把路径换成你的解压位置）：
+
+   cd ~/Desktop/GEO文档检测工具
+   chmod +x start_geo.command
+   xattr -d com.apple.quarantine start_geo.command
+   ./start_geo.command
+
+4. 第一次会自动创建 .venv 并安装依赖，需要联网，等几分钟。
+5. 浏览器会打开 http://127.0.0.1:8765
+   关闭黑色终端窗口即停止本工具。
+
+知识库 / 写稿（可选）
+--------------------
+写稿和知识库依赖桌面上的「数据库测试/数据库测试」文件夹，以及本机的 hermes 命令。
+请把该文件夹放到和「GEO文档检测工具」同一层，例如都放在「桌面」：
+
+  桌面/GEO文档检测工具/
+  桌面/数据库测试/数据库测试/
+
+也可以不移动文件夹，启动前在终端设置：
+
+  export GEO_KB_ROOT="$HOME/Desktop/数据库测试/数据库测试"
+
+没有知识库时，检测、提问、投放分析仍然可用；生成文章和上传知识库会跳过。
+Hermes 需要在 Mac 上单独安装。未安装时，启动脚本会跳过 Hermes Proxy。

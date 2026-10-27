@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}设置 · GEO{% endblock %}
+{% block lead %}配置采集检测 Agent（方舟联网 / Agicto OpenAI 兼容）。{% endblock %}
+{% block content %}
+<section class="panel full">
+  <h2>采集检测 Agent</h2>
+  <p class="hint">
+    保存到 <code>{{ collect_agent.source_file }}</code>，优先于 <code>.env</code>。
+    Base URL 填 <code>https://api.agicto.cn/v1</code> 时自动走 OpenAI 兼容
+    <code>/chat/completions</code>；填方舟地址则走 <code>/responses</code> + 联网搜索。
+    <strong>API Key 只能填密钥，不要填网址。</strong>
+  </p>
+  {% if collect_agent.key_looks_like_url %}
+  <div class="probe-box err">
+    <strong>当前配置有误</strong>
+    <p>API Key 被填成了网址，所以模型不会真正回复。请重新填写 Agicto 控制台的密钥（通常 sk- 开头），Base URL 保持 https://api.agicto.cn/v1。</p>
+  </div>
+  {% endif %}
+  {% if settings_message %}
+  <p class="meta" style="margin-bottom:12px;color:{% if settings_ok %}var(--ok){% else %}var(--err){% endif %}">
+    {{ settings_message }}
+  </p>
+  {% endif %}
+  {% if probe_result %}
+  <div class="probe-box {% if probe_result.ok %}ok{% else %}err{% endif %}">
+    <strong>{% if probe_result.ok %}连接成功{% else %}连接失败{% endif %}</strong>
+    <p>{{ probe_result.message }}</p>
+    {% if probe_result.preview %}
+    <p class="meta">模型回复预览：{{ probe_result.preview }}</p>
+    {% endif %}
+  </div>
+  {% endif %}
+  <form id="settingsForm" method="post" action="/settings">
+    <div class="field">
+      <label for="ark_api_key">API Key（密钥，不是网址）</label>
+      <input id="ark_api_key" name="ark_api_key" type="password" autocomplete="off"
+             placeholder="留空则保持现有：{{ collect_agent.ark_api_key_masked }}" />
+      <p class="meta" style="margin-top:6px">当前：{{ collect_agent.ark_api_key_masked }}
+        {% if collect_agent.configured %}
+        <span class="badge official">已配置</span>
+        {% elif collect_agent.key_looks_like_url %}
+        <span class="badge error">Key 填成了网址</span>
+        {% else %}
+        <span class="badge error">未配置</span>
+        {% endif %}
+        · 协议：{% if collect_agent.protocol == 'openai_chat' %}OpenAI 兼容 Chat{% else %}方舟 Responses{% endif %}
+      </p>
+    </div>
+    <div class="field">
+      <label for="ark_model">模型 / 接入点 ID</label>
+      <input id="ark_model" name="ark_model" required value="{{ collect_agent.ark_model }}"
+             placeholder="Agicto 模型名，或方舟 ep-xxxx" />
+    </div>
+    <div class="field">
+      <label for="ark_base_url">API Base URL</label>
+      <input id="ark_base_url" name="ark_base_url" required value="{{ collect_agent.ark_base_url }}"
+             placeholder="https://api.agicto.cn/v1 或 https://ark.cn-beijing.volces.com/api/v3" />
+    </div>
+    <div class="field">
+      <label for="ask_interval_sec">提问间隔（秒）</label>
+      <input id="ask_interval_sec" name="ask_interval_sec" type="number" min="0" step="0.5"
+             value="{{ collect_agent.ask_interval_sec }}" />
+    </div>
+
+    <h3 style="font-family:var(--font-display);font-size:1.08rem;margin:18px 0 8px">Token 折算倍率</h3>
+    <p class="hint">计入消耗的 Token = 接口用量 × 倍率。可按不同活动成本比例调整。</p>
+    <div class="field">
+      <label for="rate_collect_ask">采集提问</label>
+      <input id="rate_collect_ask" name="rate_collect_ask" type="number" min="0" step="0.01"
+             value="{{ token_rates.collect_ask }}" />
+    </div>
+    <div class="field">
+      <label for="rate_collect_probe">测试连接</label>
+      <input id="rate_collect_probe" name="rate_collect_probe" type="number" min="0" step="0.01"
+             value="{{ token_rates.collect_probe }}" />
+    </div>
+    <div class="field">
+      <label for="rate_collect_search">联网搜索（估算）</label>
+      <input id="rate_collect_search" name="rate_collect_search" type="number" min="0" step="0.01"
+             value="{{ token_rates.collect_search }}" />
+    </div>
+    <div class="field">
+      <label for="rate_article_gen">生成文章</label>
+      <input id="rate_article_gen" name="rate_article_gen" type="number" min="0" step="0.01"
+             value="{{ token_rates.article_gen }}" />
+    </div>
+
+    <div class="row">
+      <button class="btn" type="submit">保存设置</button>
+      <button class="btn secondary" type="submit" formaction="/settings/test" formmethod="post">测试连接</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

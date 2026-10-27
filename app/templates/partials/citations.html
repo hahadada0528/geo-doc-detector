@@ -1,0 +1,40 @@
+      <section class="panel full">
+        <h2>引用结果</h2>
+        <p class="hint">字段：网站名、资料分级（用户反馈/产品信息等）、问题、参考段落、加入日期。</p>
+        <div style="overflow:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>加入日期</th>
+                <th>品牌</th>
+                <th>网站名</th>
+                <th>资料分级</th>
+                <th>问题</th>
+                <th>参考段落</th>
+                <th>链接</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in citations %}
+              <tr>
+                <td>{{ c.added_at }}</td>
+                <td>{{ c.brand_name }}</td>
+                <td>
+                  {% if c.is_official %}
+                  <span class="badge official">官网</span>
+                  {% else %}
+                  {{ c.site_name }}
+                  {% endif %}
+                </td>
+                <td><span class="badge">{{ c.content_level or '—' }}</span></td>
+                <td>{{ c.question_text }}</td>
+                <td class="seg">{{ c.segment or c.title or '—' }}</td>
+                <td>{% if c.url %}<a href="{{ c.url }}" target="_blank" rel="noopener">打开</a>{% else %}—{% endif %}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="7" class="meta">暂无引用记录。</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
